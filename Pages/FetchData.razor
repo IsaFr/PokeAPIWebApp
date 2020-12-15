@@ -3,7 +3,7 @@
 @using PokeAPI
 @using PokeAPIWebApp.Data
 
-@if (pokemones() == null)
+@if (pokemons() == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -23,42 +23,31 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var element in pokemones())
+            @foreach (var element in pokemons())
             {
                 if (!IsVisible(element))
                     continue;
 
-                Data.Add("ID: " + ((element.ID).ToString()) + "\n");
-                Data.Add("Name: " + element.Name + "\n");
-                Data.Add("Shape: " + element.Shape.Name + "\n");
-                Data.Add("Color: " + element.Colours.Name + "\n");
-                Data.Add("Habitat: " + element.Habitat.Name + "\n");
-                Data.Add("Varieties: " + ((element.Varieties).ToString()) + "\n");
-                Data.Add("Pokedex numbers: " + ((element.PokedexNumbers).ToString()) + "\n");
-                Data.Add("Generation: " + element.Generation.Name + "\n");
-                Data.Add("Evolution chain: " + ((element.EvolutionChain).ToString()) + "\n");
-
-
-            <tr>
-                <td>@element.ID</td>
-                <td>@element.Name</td>
-                <td>@element.Generation.Name</td>
-                <td>@element.Colours.Name</td>
-                <td><button @onclick="@(() => DetailsText(Data))">Download</button></td>
-            </tr>
+                <tr>
+                    <td>@element.ID</td>
+                    <td>@element.Name</td>
+                    <td>@element.Generation.Name</td>
+                    <td>@element.Colours.Name</td>
+                    <td><button @onclick="@(() => Download(element.ID))">Download</button></td>
+                </tr>
             }
 
         </tbody>
     </table>
 }
 
-@code {
+
+@code 
+{
 
     public List<PokemonSpecies> allpokemons = new List<PokemonSpecies>();
 
     public string Filter { get; set; }
-
-    public List<string> SpecificPokemon = new List<string>();
 
     public bool IsVisible(PokemonSpecies pokemon)
     {
@@ -79,7 +68,7 @@ else
         }
     }
 
-    public List<PokemonSpecies> pokemones()
+    public List<PokemonSpecies> pokemons()
     {
         return allpokemons;
     }
@@ -90,9 +79,44 @@ else
     public List<string> Data = new List<string>();
 
 
-    private async Task DetailsText(List<string> info)
+
+    private async Task Download(int id)
     {
-        await oIFileSave.SaveAs(FileName, info);
+        string varieties = "";
+        string pokedexNumbers = "";
+
+        if (Data.Count() != 0)
+            Data.RemoveAt(0);
+
+        foreach (var element in pokemons())
+        {
+            if (id == element.ID)
+            {
+                foreach (var index in element.Varieties)
+                {
+                    varieties += ((index.Pokemon.Name).ToString());
+                    varieties += ", ";
+
+                }
+
+                foreach (var index in element.PokedexNumbers)
+                {
+                    pokedexNumbers += ((index.Pokedex.Name).ToString());
+                    pokedexNumbers += ", ";
+                }
+
+                Data.Add("ID: " + ((element.ID).ToString()) + "\n" + "Name: " + element.Name + "\n" + "Shape: "
+                + element.Shape.Name + "\n" + "Color: " + element.Colours.Name + "\n" + "Habitat: " + element.Habitat.Name
+                + "\n" + "Varieties: " + varieties + "\n" + "Pokedex numbers: " + pokedexNumbers + "\n" +
+                "Generation: " + element.Generation.Name + "\n" + "Evolution chain: " + element.EvolutionChain.Url + "\n");
+
+
+            }
+
+        }
+
+        await oIFileSave.SaveAs(FileName, Data);
     }
+
 
 }
