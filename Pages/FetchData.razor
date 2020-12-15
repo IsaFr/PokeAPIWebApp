@@ -1,0 +1,98 @@
+﻿@page "/listofpokemons"
+
+@using PokeAPI
+@using PokeAPIWebApp.Data
+
+@if (pokemones() == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="form-group">
+        <input class="form-control" type="text" placeholder="Filter by name, e. g. Pikachu" @bind="Filter" @bind:event="oninput">
+    </div>
+    <table class="table table-striped">
+        <thead class="thead-light">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Generation</th>
+                <th>Color</th>
+                <th>More details</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var element in pokemones())
+            {
+                if (!IsVisible(element))
+                    continue;
+
+                Data.Add("ID: " + ((element.ID).ToString()) + "\n");
+                Data.Add("Name: " + element.Name + "\n");
+                Data.Add("Shape: " + element.Shape.Name + "\n");
+                Data.Add("Color: " + element.Colours.Name + "\n");
+                Data.Add("Habitat: " + element.Habitat.Name + "\n");
+                Data.Add("Varieties: " + ((element.Varieties).ToString()) + "\n");
+                Data.Add("Pokedex numbers: " + ((element.PokedexNumbers).ToString()) + "\n");
+                Data.Add("Generation: " + element.Generation.Name + "\n");
+                Data.Add("Evolution chain: " + ((element.EvolutionChain).ToString()) + "\n");
+
+
+            <tr>
+                <td>@element.ID</td>
+                <td>@element.Name</td>
+                <td>@element.Generation.Name</td>
+                <td>@element.Colours.Name</td>
+                <td><button @onclick="@(() => DetailsText(Data))">Download</button></td>
+            </tr>
+            }
+
+        </tbody>
+    </table>
+}
+
+@code {
+
+    public List<PokemonSpecies> allpokemons = new List<PokemonSpecies>();
+
+    public string Filter { get; set; }
+
+    public List<string> SpecificPokemon = new List<string>();
+
+    public bool IsVisible(PokemonSpecies pokemon)
+    {
+        if (string.IsNullOrEmpty(Filter))
+            return true;
+        if (pokemon.Name.Contains(Filter, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        for (int i = 1; i <= 50; i++)
+        {
+            var p = await DataFetcher.GetApiObject<PokemonSpecies>(i);
+            allpokemons.Add(p);
+        }
+    }
+
+    public List<PokemonSpecies> pokemones()
+    {
+        return allpokemons;
+    }
+
+    [Inject]
+    private IFileSaver oIFileSave { get; set; }
+    private string FileName { get; set; } = "pokemon.text";
+    public List<string> Data = new List<string>();
+
+
+    private async Task DetailsText(List<string> info)
+    {
+        await oIFileSave.SaveAs(FileName, info);
+    }
+
+}
