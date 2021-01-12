@@ -61,10 +61,17 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        for (int i = 1; i <= 50; i++)
+        try
         {
-            var p = await DataFetcher.GetApiObject<PokemonSpecies>(i);
-            allpokemons.Add(p);
+            for (int i = 1; i <= 50; i++)
+            {
+                var p = await DataFetcher.GetApiObject<PokemonSpecies>(i);
+                allpokemons.Add(p);
+            }
+        }
+        catch(HttpRequestException e)
+        {
+            Console.WriteLine("{0}. Actualmente los servidores de pokeapi están fuera de servicio", e);
         }
     }
 
